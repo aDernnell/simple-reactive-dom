@@ -1,0 +1,42 @@
+{
+    "name": "@adernnell/simplereactivedom",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/main.d.ts",
+    "exports": {
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "default": "./dist/*.js"
+        },
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "lib"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b ./tsconfig.lib.json --force && vite build",
+        "build-app": "vite build --config vite.config.app.ts",
+        "serve": "serve dist-app/",
+        "tsc-watch": "tsc -b ./tsconfig.lib.json --watch",
+        "vite-watch": "vite build --watch",
+        "test": "vitest",
+        "preview": "vite preview",
+        "prepublishOnly": "npm run build"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.5",
+        "glob": "^11.0.1",
+        "happy-dom": "^17.4.4",
+        "serve": "^14.2.4",
+        "typescript": "~5.7.2",
+        "vite": "^6.1.0",
+        "vitest": "^3.0.8"
+    }
+}

@@ -14,7 +14,7 @@
         "templating"
     ],
     "license": "MIT",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/main.d.ts",

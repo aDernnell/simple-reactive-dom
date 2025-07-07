@@ -1,7 +1,7 @@
 SimpleReactiveDOM
 =================
 
-**SimpleReactiveDOM.js** or more simply **srDOM** is a reactive UI framework based on [vanilla Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) and [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model).
+**SimpleReactiveDOM** or more simply **srDOM** is a reactive UI framework based on [vanilla Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) and [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model).
 
 
 ## Features

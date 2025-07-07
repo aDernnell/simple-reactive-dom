@@ -1,7 +1,7 @@
 # SimpleReactiveDOM
 
 SimpleReactiveDOM is a lightweight, reactive DOM generation library for modern web development. It provides a simple API for binding data, managing state, and building dynamic user interfaces with minimal overhead.
-It emphasizes explicit over implicit and allow you to express your UI in a composible manner in pure JavaScript while being close to html syntax.
+It emphasizes on explicit over implicit and allow you to express your UI in a composible manner in pure JavaScript while being close to html syntax.
 
 ## Features
 
@@ -12,6 +12,10 @@ It emphasizes explicit over implicit and allow you to express your UI in a compo
 
 ## Quickstart
 
+Try on [jsFiddle](https://jsfiddle.net/qenbtdsr/latest/)
+
+See the [Quick Start guide](https://adernnell.github.io/simple-reactive-dom/#/quickstart)
+
 Install via npm:
 
 ```bash
@@ -21,9 +25,19 @@ npm install @dernnell/simplereactivedom
 Import and use in your project:
 
 ```ts
-import { writable, html, node } from '@dernnell/simplereactivedom';
+import { html, node, writable, call } from '@dernnell/simplereactivedom';
 
-
+const username = writable('World');
+const contentNode = node(html`
+    <div>
+        <input 
+            type="text" 
+            value="${username}" 
+            oninput=${call((e) => username.set(e.target.value))}
+        />
+        <span>Hello ${username} !</span>
+    </div>
+`);
 ```
 
 ## Documentation

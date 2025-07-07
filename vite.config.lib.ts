@@ -10,7 +10,7 @@ export default defineConfig(({ command }) => ({
             name: 'srdom',
             entry: path.resolve(__dirname, 'lib/bundle.ts'),
             formats: ['iife'],
-            fileName: (format) => `simplereactivedom.bundle.${format}.js`,
+            fileName: (format) => `bundle.${format}.js`,
         },
         emptyOutDir: false,
     },

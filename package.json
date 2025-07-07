@@ -39,11 +39,13 @@
         "tsc-watch": "tsc -b ./tsconfig.lib.json --watch",
         "vite-watch": "vite build --watch",
         "test": "vitest",
+        "coverage": "vitest run --coverage",
         "preview": "vite preview",
         "prepublishOnly": "npm run build"
     },
     "devDependencies": {
         "@types/node": "^22.13.5",
+        "@vitest/coverage-v8": "^3.2.4",
         "glob": "^11.0.1",
         "happy-dom": "^17.4.4",
         "serve": "^14.2.4",

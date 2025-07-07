@@ -7,8 +7,9 @@ export default defineConfig(({ command }) => ({
     build: {
         copyPublicDir: false,
         lib: {
+            name: 'srdom',
             entry: path.resolve(__dirname, 'lib/bundle.ts'),
-            formats: ['cjs'],
+            formats: ['iife'],
             fileName: (format) => `simplereactivedom.bundle.${format}.js`,
         },
         emptyOutDir: false,

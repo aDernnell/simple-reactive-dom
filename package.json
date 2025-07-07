@@ -1,15 +1,20 @@
 {
     "name": "@adernnell/simplereactivedom",
     "description": "A simple reactive DOM generation library for building web applications.",
+    "author": "Quentin Allender",
     "keywords": [
         "reactivedom",
         "simpledom",
-        "simplereactivedom",
         "simple-reactive-dom",
-        "srDOM"
+        "srDOM",
+        "dom",
+        "typescript",
+        "ui",
+        "framework",
+        "templating"
     ],
-    "private": true,
-    "version": "1.0.0",
+    "license": "MIT",
+    "version": "1.0.2",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/main.d.ts",
@@ -24,8 +29,7 @@
         }
     },
     "files": [
-        "dist",
-        "lib"
+        "dist"
     ],
     "scripts": {
         "dev": "vite",

@@ -28,7 +28,7 @@ import { writable, html, node } from '@dernnell/simplereactivedom';
 
 ## Documentation
 
-See the [`docs/`](docs/) folder for detailed guides.
+See https://adernnell.github.io/simple-reactive-dom/ for detailed documentation.
 
 
 ## License

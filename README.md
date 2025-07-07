@@ -1,6 +1,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/aDernnell/simple-reactive-dom/badge.svg?branch=main)](https://coveralls.io/github/aDernnell/simple-reactive-dom?branch=main)
 [![npm version](https://badge.fury.io/js/%40adernnell%2Fsimplereactivedom.svg)](https://badge.fury.io/js/%40adernnell%2Fsimplereactivedom)
-[![GitHub license](https://img.shields.io/ggitithub/license/aDernnell/simple-reactive-dom)](
+[![GitHub license](https://img.shields.io/github/license/aDernnell/simple-reactive-dom)](https://img.shields.io/github/license/aDernnell/simple-reactive-dom)
 
 # SimpleReactiveDOM
 

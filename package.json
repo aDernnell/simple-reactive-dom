@@ -1,5 +1,13 @@
 {
     "name": "@adernnell/simplereactivedom",
+    "description": "A simple reactive DOM generation library for building web applications.",
+    "keywords": [
+        "reactivedom",
+        "simpledom",
+        "simplereactivedom",
+        "simple-reactive-dom",
+        "srDOM"
+    ],
     "private": true,
     "version": "1.0.0",
     "type": "module",

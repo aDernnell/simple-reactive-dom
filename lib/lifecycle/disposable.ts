@@ -36,7 +36,7 @@ export const dispose = (obj: unknown): void => {
 
 export const disposeRec = (value: unknown): void => {
     if (isReadable(value)) {
-        dispose(value.get());
+        disposeRec(value.get());
     } else if (Array.isArray(value)) {
         value.forEach(disposeRec);
     }

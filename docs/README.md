@@ -12,6 +12,7 @@ SimpleReactiveDOM
   * [Snippets](./#snippets) - Conditional content and loops
   * [Refs](./#refs) - Referencing Elements
   * [Debouncer](./#debouncer) - DOM updates debouncer
+  * [Lifecycle](./#lifecycle) - Clean up generated DOM elements
 
 ### Stores
 The library embbed https://svelte.dev/docs/svelte/stores#svelte-store as a way to control states and reactivity. The [source code](https://github.com/sveltejs/svelte/tree/main/packages/svelte/src/store) of svelte store implementation has been copy-pasted and adapted, making srDOM dependency free.
@@ -119,6 +120,22 @@ console.log(el.textContent); // Outputs: "Hello World"
 
 ?> See [Debouncer section](/debouncer) for more informations.
 
+### Lifecycle
+
+The library provides a flexible mecanism to clean up generated DOM elements and associated resources. This is done through the `disposable()` function, which allows you to attach cleanup functions to any object, including nodes, which can then be disposed later using the `dispose()` function.
+
+```js
+const obj = {};
+
+disposable(obj, () => console.log('I am disposed !'));
+
+// use the object...
+
+dispose(obj); // Outputs: "I am disposed !"
+```
+
+?> See [Lifecycle section](/lifecycle) for more informations.
+
 
 ## Example
 ```js
@@ -155,7 +172,7 @@ import { html, text, node} from '@adernnell/simplereactivedom/template/tag';
 import { when, call, opt } from '@adernnell/simplereactivedom/template/directives';
 import { getElementRefs, setGlobalSerializer, BindingContext} from '@adernnell/simplereactivedom/binding';
 import { loop, cond } from '@adernnell/simplereactivedom/snippets';
-import { disposable } from '@adernnell/simplereactivedom/lifecycle';
+export { disposable, dispose, shallowDispose, disposeRec, isDisposable } from '@adernnell/simplereactivedom/lifecycle';
 import { flush } from '@adernnell/simplereactivedom/dom/operation';
 import { createDebouncer, tick } from '@adernnell/simplereactivedom/utils/debounce';
 import { readable, writable, derived, isReadable, isWritable, readonly, get} from '@adernnell/simplereactivedom/stores';
@@ -166,7 +183,7 @@ import {
     when, call, opt, 
     getElementRefs, setGlobalSerializer, BindingContext, 
     loop, cond, 
-    disposable, 
+    disposable, dispose, shallowDispose, disposeRec, isDisposable,
     flush, 
     createDebouncer, tick, 
     readable, writable, derived, isReadable, isWritable, readonly, get 

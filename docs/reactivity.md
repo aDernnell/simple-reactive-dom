@@ -147,7 +147,7 @@ A function: `<T>(store: Readable<T>) => T`
 <big>**node**(fn: (watch: Watcher) => HtmlLiterals, options?: WatcherOptions): Node</big>
 
 Transforms a template or a function returning a template into an HTML node and implements reactivity. 
-- In direct mode, takes the result of a tag function, aka `HtmlLiterals`, and returns a DOM node.
+- In direct mode, takes the result of a tag function, i.e. `HtmlLiterals`, and returns a DOM node.
 - In watcher mode, takes a function that returns an `HtmlLiterals` object and automatically updates the node when watched stores change.
 
 _Options:_

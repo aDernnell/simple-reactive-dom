@@ -10,3 +10,4 @@
   * [Snippets](snippets.md)
   * [Refs](refs.md)
   * [Debouncer](debouncer.md)
+  * [Lifecycle](lifecycle.md)

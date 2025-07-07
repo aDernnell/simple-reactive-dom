@@ -16,15 +16,15 @@ export default defineConfig(({ command }) => ({
     },
 
     test: {
-        root: path.resolve(__dirname, 'lib'),
-        include: ['tests/**/*.test.ts'],
+        root: __dirname,
+        include: ['lib/tests/**/*.test.ts'],
         environment: 'happy-dom',
         coverage: {
             reporter: [['lcov'], ['json', { file: 'coverage.json' }], ['text']],
             reportsDirectory: path.resolve(__dirname, 'coverage'),
             provider: 'v8',
-            include: ['**'],
-            exclude: ['tests/**', 'index.ts', 'bundle.ts', 'stores/types.ts'],
+            include: ['lib/**'],
+            exclude: ['**/tests/**', '**/index.ts', '**/bundle.ts', '**/types.ts'],
             extensions: ['.ts'],
         },
     },

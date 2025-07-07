@@ -1,7 +1,7 @@
 import { describe, it, assert, expect } from 'vitest';
-import { html, HtmlLiterals, node } from '../framework/template/tag';
+import { html, HtmlLiterals, node } from '../template/tag';
 import { derived, writable } from '../stores';
-import { cond } from '../framework/snippets/condition';
+import { cond } from '../snippets/condition';
 
 describe('condition', () => {
     it('builds a simple if structure', () => {

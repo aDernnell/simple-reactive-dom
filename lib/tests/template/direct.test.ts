@@ -1,10 +1,10 @@
 import { assert, describe, expect, it } from 'vitest';
-import { html, HtmlLiterals, node, text } from '../../framework/template/tag';
+import { html, HtmlLiterals, node, text } from '../../template/tag';
 import { derived, writable } from '../../stores';
 import { isText, rawHtmlToNode } from '../../utils';
-import { cond, loop } from '../../framework/snippets';
+import { cond, loop } from '../../snippets';
 import { tick } from '../../utils/debounce';
-import { DomUpdateMode, flush } from '../../framework/dom/operation';
+import { DomUpdateMode, flush } from '../../dom/operation';
 
 describe('node html in direct mode', () => {
     it('binds primitive types', async () => {

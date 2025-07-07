@@ -1,10 +1,10 @@
 import { describe, it, assert } from 'vitest';
 import { isElement, isText } from '../utils/elements';
-import { html, HtmlLiterals, node } from '../framework/template/tag';
-import { isReadable, Unsubscriber, writable } from '../stores';
-import { loop } from '../framework/snippets/loop';
+import { html, HtmlLiterals, node } from '../template/tag';
+import { isReadable, writable } from '../stores';
+import { loop } from '../snippets/loop';
 import { tick } from '../utils/debounce';
-import { Binding, DOM_TARGET, isDisposable } from '../framework';
+import { isDisposable } from '../lifecycle';
 
 describe('loop', () => {
     it('creates a simple reactive loop', async () => {

@@ -151,14 +151,25 @@ document.getElementById('app-content')!.replaceChildren(contentNode);
 
 ## Exports
 ```js
-export { 
-    html, text, node, setGlobalSerializer, BindingContext, // templating
-    getElementRefs, // refs
-    when, call, opt, // directives
-    loop, cond, // snippets
-    disposable, // lifecycle
-    createDebouncer, flush, tick, // debouncer
-    readable, writable, derived, isReadable, isWritable, readonly, get // stores
+import { html, text, node} from '@adernnell/simplereactivedom/template/tag';
+import { when, call, opt } from '@adernnell/simplereactivedom/template/directives';
+import { getElementRefs, setGlobalSerializer, BindingContext} from '@adernnell/simplereactivedom/binding';
+import { loop, cond } from '@adernnell/simplereactivedom/snippets';
+import { disposable } from '@adernnell/simplereactivedom/lifecycle';
+import { flush } from '@adernnell/simplereactivedom/dom/operation';
+import { createDebouncer, tick } from '@adernnell/simplereactivedom/utils/debounce';
+import { readable, writable, derived, isReadable, isWritable, readonly, get} from '@adernnell/simplereactivedom/stores';
+
+// Everithing is also exported from the main bundle
+import { 
+    html, text, node, 
+    when, call, opt, 
+    getElementRefs, setGlobalSerializer, BindingContext, 
+    loop, cond, 
+    disposable, 
+    flush, 
+    createDebouncer, tick, 
+    readable, writable, derived, isReadable, isWritable, readonly, get 
 } from '@adernnell/simplereactivedom';
 ```
 

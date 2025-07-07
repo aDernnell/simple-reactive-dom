@@ -1,5 +1,5 @@
-import { Readable } from '../../stores';
-import { isElement, isText } from '../../utils';
+import { Readable } from '../stores';
+import { isElement, isText } from '../utils';
 import { domOp, DomUpdateMode, replaceBy } from '../dom/operation';
 import { bindAttrValue, Binding, bindNodeValue, bindOrphanTextNodeValue } from './bind';
 import { DomTargetWrapper } from './target';

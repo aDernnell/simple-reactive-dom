@@ -1,5 +1,5 @@
 import { describe, it, expect, assert, vi } from 'vitest';
-import { html, HTML_LITERALS, node, raw, rawHtml, text, tmpl } from '../../framework/template/tag';
+import { html, HTML_LITERALS, node, raw, rawHtml, text, tmpl } from '../../template/tag';
 import { derived, isReadable, writable } from '../../stores';
 
 describe('html tag', () => {

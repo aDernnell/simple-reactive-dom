@@ -1,11 +1,10 @@
 import { describe, it, assert, expect } from 'vitest';
 import { isAttr, isElement, isText, rawHtmlToNode } from '../../utils/elements';
-import { rawHtml } from '../../framework/template/tag';
-import { bindStates } from '../../framework/binding/states';
+import { rawHtml } from '../../template/tag';
+import { bindStates } from '../../binding/states';
 import { readable, writable } from '../../stores';
-import { DomTargetWrapper } from '../../framework/binding/target';
-import { flush } from '../../framework/dom/operation';
-import { rebind } from '../../framework/binding/rebind';
+import { DomTargetWrapper } from '../../binding/target';
+import { flush } from '../../dom/operation';
 
 describe('binding metadata', () => {
     it('describes a single binding in an attr', () => {

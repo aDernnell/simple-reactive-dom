@@ -1,11 +1,11 @@
 import { describe, it, assert } from 'vitest';
 import { isElement, isText, rawHtmlToNode } from '../../utils/elements';
-import { html, HtmlLiterals, rawHtml, text } from '../../framework/template/tag';
-import { BindingContext, bindStates, setGlobalSerializer } from '../../framework/binding/states';
+import { html, HtmlLiterals, rawHtml, text } from '../../template/tag';
+import { BindingContext, bindStates, setGlobalSerializer } from '../../binding/states';
 import { derived, readable, Unsubscriber, writable } from '../../stores';
 import { tick } from '../../utils/debounce';
-import { DomUpdateMode, flush } from '../../framework/dom/operation';
-import { dispose } from '../../framework';
+import { DomUpdateMode, flush } from '../../dom/operation';
+import { dispose } from '../../lifecycle';
 
 describe('binding states', () => {
     it('binds single state in text node', async () => {

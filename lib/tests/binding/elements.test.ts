@@ -1,7 +1,7 @@
 import { describe, it, assert } from 'vitest';
 import { rawHtmlToNode } from '../../utils/elements';
-import { rawHtml } from '../../framework/template/tag';
-import { getElementRefs } from '../../framework/binding/elements';
+import { rawHtml } from '../../template/tag';
+import { getElementRefs } from '../../binding/elements';
 
 
 describe('referencing elements', () => {

@@ -1,5 +1,5 @@
-import { HtmlLiterals, isHtmlLiterals, node } from '../../framework/template/tag';
-import { derived, isReadable, Readable, Unsubscriber, Writable, writable } from '../../stores';
+import { HtmlLiterals, isHtmlLiterals, node } from '../template/tag';
+import { derived, isReadable, Readable, Unsubscriber, Writable, writable } from '../stores';
 import { dispose } from '../lifecycle/disposable';
 
 type ConditionBuilder = {

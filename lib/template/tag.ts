@@ -1,7 +1,7 @@
-import { isReadable, derived, Readable, Unsubscriber, writable, isWritable } from '../../stores';
-import { rawHtmlToNode } from '../../utils';
+import { isReadable, derived, Readable, Unsubscriber, writable, isWritable } from '../stores';
+import { rawHtmlToNode } from '../utils';
 import { Binding, BindingContext, bindStates } from '../binding';
-import { createDebouncer } from '../../utils/debounce';
+import { createDebouncer } from '../utils/debounce';
 import { DomUpdateMode } from '../dom/operation';
 import { disposable, dispose, disposeRec, SHALLOW_DISPOSE, shallowDispose } from '../lifecycle/disposable';
 import { isConditionalAttr, isEventHandler } from './directives';

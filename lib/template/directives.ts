@@ -1,4 +1,4 @@
-import { derived, isReadable, readable, Readable, writable } from '../../stores';
+import { derived, isReadable, readable, Readable, writable } from '../stores';
 
 const COND_ATTR = Symbol.for('cond_attr');
 const EV_HANDLER = Symbol.for('ev_handler');

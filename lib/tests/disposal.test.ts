@@ -1,10 +1,12 @@
 import { assert, describe, expect, it, vi } from 'vitest';
-import { html, HtmlLiterals, node, rawHtml, text } from '../framework/template/tag';
+import { html, HtmlLiterals, node, rawHtml, text } from '../template/tag';
 import { Readable, Writable, writable } from '../stores';
 import { tick } from '../utils/debounce';
 import { rawHtmlToNode } from '../utils';
-import { disposable, dispose } from '../framework/lifecycle/disposable';
-import { call, cond, getElementRefs, loop, when } from '../framework';
+import { disposable, dispose } from '../lifecycle/disposable';
+import { cond, loop } from '../snippets';
+import { call, when } from '../template/directives';
+import { getElementRefs } from '../binding';
 
 describe('dynamic content disposal', () => {
     it('disposes Element node', async () => {

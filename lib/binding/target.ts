@@ -1,4 +1,4 @@
-import { isElement, isText } from '../../utils';
+import { isElement, isText } from '../utils';
 import { domOp, DomUpdateMode, replaceBy } from '../dom/operation';
 import { HtmlLiterals, isHtmlLiterals, node } from '../template/tag';
 

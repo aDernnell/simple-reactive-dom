@@ -1,4 +1,4 @@
-import { derived, Readable, Unsubscriber } from '../../stores';
+import { derived, Readable, Unsubscriber } from '../stores';
 import { createDomDebouncer, domOp, DomUpdateMode } from '../dom/operation';
 import { disposable, dispose } from '../lifecycle/disposable';
 import { EventHandler, isConditionalAttr, isEventHandler } from '../template';

@@ -1,5 +1,5 @@
 import { getElementRefs, writable } from '../../../lib';
-import { node, html } from '../../../lib/framework/template/tag';
+import { node, html } from '../../../lib/template/tag';
 
 let count = -1;
 const List = () => html`

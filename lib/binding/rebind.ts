@@ -1,4 +1,4 @@
-import { isReadable, isWritable, Readable } from '../../stores';
+import { isReadable, isWritable, Readable } from '../stores';
 import { DomUpdateMode } from '../dom/operation';
 import { dispose, disposeRec } from '../lifecycle/disposable';
 import { HtmlLiterals, tmpl } from '../template/tag';

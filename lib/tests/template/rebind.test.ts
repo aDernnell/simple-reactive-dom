@@ -1,7 +1,7 @@
 import { assert, describe, expect, it } from 'vitest';
-import { html, node } from '../../framework';
+import { html, node } from '../../template/tag';
 import { readable } from '../../stores';
-import { rebind } from '../../framework/binding/rebind';
+import { rebind } from '../../binding/rebind';
 
 describe('rebind', () => {
     it('Replaces the needed bindings in the literals', () => {

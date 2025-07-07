@@ -1,6 +1,6 @@
 import { call, derived, disposable, dispose, loop, Readable, when, Writable, writable } from '../../../lib';
-import { DomUpdateMode } from '../../../lib/framework/dom/operation';
-import { node, html } from '../../../lib/framework/template/tag';
+import { DomUpdateMode } from '../../../lib/dom/operation';
+import { node, html } from '../../../lib/template/tag';
 
 type Item = {
     id: number;

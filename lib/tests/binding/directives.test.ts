@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, assert } from 'vitest';
 import { writable } from '../../stores';
-import { rawHtmlToNode } from '../../utils';
-import { bindStates, call, html, node, opt, rawHtml, when } from '../../framework';
+import { call, when, opt } from '../../template/directives';
+import { html, node } from '../../template/tag';
 import { tick } from '../../utils/debounce';
 
 describe('call directive : binding event handlers', () => {

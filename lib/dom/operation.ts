@@ -1,4 +1,4 @@
-import { createDebouncer } from "../../utils/debounce";
+import { createDebouncer } from "../utils/debounce";
 
 export enum DomUpdateMode {
     EAGER,

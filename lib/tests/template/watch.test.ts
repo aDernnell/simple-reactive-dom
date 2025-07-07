@@ -1,8 +1,8 @@
 import { assert, describe, expect, it, vi } from 'vitest';
-import { derived, writable, Readable, Writable } from '../../stores';
-import { html, node, Watcher } from '../../framework/template/tag';
+import { derived, writable, Readable } from '../../stores';
+import { html, node } from '../../template/tag';
 import { tick } from '../../utils/debounce';
-import { DomUpdateMode } from '../../framework/dom/operation';
+import { DomUpdateMode } from '../../dom/operation';
 
 describe('node html in watch mode', () => {
     it('watches inside attribute', async () => {

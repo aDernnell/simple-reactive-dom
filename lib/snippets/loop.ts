@@ -1,7 +1,7 @@
-import { Readable, Unsubscriber, Writable, writable } from '../../stores';
-import { diffArray, OpType } from '../../utils/diffing';
-import { isText } from '../../utils/elements';
-import { randomUniqueId } from '../../utils/uniqueId';
+import { Readable, Unsubscriber, Writable, writable } from '../stores';
+import { diffArray, OpType } from '../utils/diffing';
+import { isText } from '../utils/elements';
+import { randomUniqueId } from '../utils/uniqueId';
 import { domOp, DomUpdateMode } from '../dom/operation';
 import { disposable, dispose } from '../lifecycle/disposable';
 import { HtmlLiterals, isHtmlLiterals, node } from '../template/tag';

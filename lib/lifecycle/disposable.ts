@@ -1,4 +1,4 @@
-import { isReadable } from '../../stores';
+import { isReadable } from '../stores';
 
 const DISPOSE = Symbol.for('dispose');
 export const SHALLOW_DISPOSE = Symbol.for('shallow_dispose');

@@ -160,7 +160,7 @@ import { flush } from '@adernnell/simplereactivedom/dom/operation';
 import { createDebouncer, tick } from '@adernnell/simplereactivedom/utils/debounce';
 import { readable, writable, derived, isReadable, isWritable, readonly, get} from '@adernnell/simplereactivedom/stores';
 
-// Everithing is also exported from the main bundle
+// Everything is also exported from the main module
 import { 
     html, text, node, 
     when, call, opt, 

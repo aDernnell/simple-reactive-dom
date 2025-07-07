@@ -1,10 +1,13 @@
-name: Release - NPM Publish and Upload coverage to Coveralls
+name: Release - NPM Publish
 
 on:
   workflow_dispatch:
 
+env:
+  NODE_ENV: release
+
 jobs:
-  build-test-publish:
+  publish-to-npm:
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -27,19 +30,8 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Run coverage
-        run: npm run coverage
-
       - name: Publish to npm
         if: github.event_name == 'workflow_dispatch'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
-
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage/lcov.info
-
-      

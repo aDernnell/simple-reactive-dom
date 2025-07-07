@@ -13,7 +13,7 @@ The framework is bundled in a single file in IIFE format:
 https://cdn.jsdelivr.net/npm/@adernnell/simplereactivedom/dist/bundle.iife.js
 
 For production use, it is advised to specify the version to avoid breaking changes:
-https://cdn.jsdelivr.net/npm/@adernnell/simplereactivedom@1.0.3/dist/bundle.iife.js
+https://cdn.jsdelivr.net/npm/@adernnell/simplereactivedom@1.0.4/dist/bundle.iife.js
 
 
 Include the script in your HTML and use the `srdom` global variable:

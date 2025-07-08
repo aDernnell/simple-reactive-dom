@@ -17,6 +17,7 @@ It emphasizes on explicit over implicit and allow you to express your UI in a co
 ## Quickstart
 
 Try on [jsFiddle](https://jsfiddle.net/qenbtdsr/latest/)
+Try on [CodeSandbox](https://codesandbox.io/p/sandbox/srdom-web-sandbox-9jqgkw)
 
 See the [Quick Start guide](https://adernnell.github.io/simple-reactive-dom/#/quickstart)
 

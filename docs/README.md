@@ -3,6 +3,8 @@ SimpleReactiveDOM
 
 **SimpleReactiveDOM** or more simply **srDOM** is a reactive UI framework based on [vanilla Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) and [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model).
 
+Try on [jsFiddle](https://jsfiddle.net/qenbtdsr/latest/)
+or on [CodeSandbox](https://codesandbox.io/p/sandbox/srdom-web-sandbox-9jqgkw)
 
 ## Features
   * [Stores](./#stores) - Embbeded svelte stores implementation

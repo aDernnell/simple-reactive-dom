@@ -60,13 +60,13 @@ You can also use the ES module version of srDOM in your project. This is the rec
 Install via npm:
 
 ```bash
-npm install @dernnell/simplereactivedom
+npm install @adernnell/simplereactivedom
 ```
 
 Import and use in your project:
 
 ```js
-import { writable, type Writable, html, node, call } from '@dernnell/simplereactivedom';
+import { writable, type Writable, html, node, call } from '@adernnell/simplereactivedom';
 
 let count = 0;
 const List = () => {
@@ -93,3 +93,5 @@ const contentNode = node(html`
 
 document.getElementById('app-content').replaceChildren(contentNode);
 ```
+
+?> Try on [CodeSandbox](https://codesandbox.io/p/sandbox/srdom-web-sandbox-9jqgkw)

@@ -14,18 +14,42 @@
         "templating"
     ],
     "license": "MIT",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
-        "./*": {
-            "types": "./dist/*.d.ts",
-            "default": "./dist/*.js"
-        },
         ".": {
             "types": "./dist/index.d.ts",
             "default": "./dist/index.js"
+        },
+        "./binding": {
+            "types": "./dist/binding/index.d.ts",
+            "default": "./dist/binding/index.js"
+        },
+        "./dom": {
+            "types": "./dist/dom/index.d.ts",
+            "default": "./dist/dom/index.js"
+        },
+        "./lifecycle": {
+            "types": "./dist/lifecycle/index.d.ts",
+            "default": "./dist/lifecycle/index.js"
+        },
+        "./snippets": {
+            "types": "./dist/snippet/index.d.ts",
+            "default": "./dist/snippet/index.js"
+        },
+        "./stores": {
+            "types": "./dist/store/index.d.ts",
+            "default": "./dist/store/index.js"
+        },
+        "./template": {
+            "types": "./dist/template/index.d.ts",
+            "default": "./dist/template/index.js"
+        },
+        "./utils": {
+            "types": "./dist/utils/index.d.ts",
+            "default": "./dist/utils/index.js"
         }
     },
     "files": [

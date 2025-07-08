@@ -24,13 +24,13 @@ See the [Quick Start guide](https://adernnell.github.io/simple-reactive-dom/#/qu
 Install via npm:
 
 ```bash
-npm install @dernnell/simplereactivedom
+npm install @adernnell/simplereactivedom
 ```
 
 Import and use in your project:
 
 ```ts
-import { html, node, writable, call } from '@dernnell/simplereactivedom';
+import { html, node, writable, call } from '@adernnell/simplereactivedom';
 
 const username = writable('World');
 const contentNode = node(html`

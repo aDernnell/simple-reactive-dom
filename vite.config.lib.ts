@@ -24,7 +24,7 @@ export default defineConfig(({ command }) => ({
             reportsDirectory: path.resolve(__dirname, 'coverage'),
             provider: 'v8',
             include: ['lib/**'],
-            exclude: ['**/tests/**', 'lib/index.ts', 'lib/bundle.ts', 'lib/stores/types.ts'],
+            exclude: ['**/tests/**', 'lib/index.ts', 'lib/dom/index.ts', 'lib/bundle.ts', 'lib/stores/types.ts'],
             extensions: ['.ts'],
         },
     },

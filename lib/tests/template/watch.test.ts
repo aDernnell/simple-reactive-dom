@@ -305,9 +305,7 @@ describe('node html in watch mode', () => {
         assert.equal(el.outerHTML, '<div class="even">Even</div>');
 
         // Spy on console.error
-        const errorSpy = vi.spyOn(console, 'error').mockImplementation((...args) => {
-            console.log(...args);
-        });
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         store.set(1);
         await tick();

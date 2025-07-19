@@ -70,7 +70,7 @@ const invalidNode = node(watch => {
     }
 });
 // But this is allowed, because it always returns the same top level template, even if the embedded one changes:
-const validNode = dynNode(watch => html`
+const validNode = node(watch => html`
     <div>
         ${watch(countStore) > 10 
             ? html`<div>Count is greater than 10</div>` 

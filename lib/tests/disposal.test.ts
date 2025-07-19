@@ -1,9 +1,9 @@
 import { assert, describe, expect, it, vi } from 'vitest';
 import { html, HtmlLiterals, node, rawHtml, text } from '../template/tag';
-import { Readable, Writable, writable } from '../stores';
+import { derived, readable, Readable, Writable, writable } from '../stores';
 import { tick } from '../utils/debounce';
 import { rawHtmlToNode } from '../utils';
-import { disposable, dispose } from '../lifecycle/disposable';
+import { disposable, dispose, isDisposable } from '../lifecycle/disposable';
 import { cond, loop } from '../snippets';
 import { call, when } from '../template/directives';
 import { getElementRefs } from '../binding';
@@ -47,7 +47,7 @@ describe('dynamic content disposal', () => {
         handler.mockClear();
         removeEventListenerSpy.mockClear();
         dispose(div);
-        
+
         expect(removeEventListenerSpy).toHaveBeenCalledWith('click', handler);
         div.click();
         expect(handler).not.toHaveBeenCalled();
@@ -240,43 +240,42 @@ describe('dynamic content disposal', () => {
         const falseEl = node(html`<span>${falseStore}</span>`) as Element;
 
         // TODO cond snippet could have an option to dispose non active branches ?
-        // in that case the conditional branch would be rebuilt each time the condition changes
+        // 18/07/2025 : only content provided with functions, or literals content are now disposed
 
         const el = node(html` <div>${cond().if(condStore, trueEl).else(falseEl)}</div>`) as Element;
 
         const expectedEl = (val: string) => `<div><span>${val}</span></div>`;
 
-        const expectedTrueBranch = (val: string) => `<span>${val}</span>`;
-        const expectedFalseBranch = (val: string) => `<span>${val}</span>`;
+        const expectedBranch = (val: string) => `<span>${val}</span>`;
 
         await tick();
         assert.strictEqual(el.outerHTML, expectedEl('A'));
-        assert.strictEqual(trueEl.outerHTML, expectedTrueBranch('A'));
-        assert.strictEqual(falseEl.outerHTML, expectedFalseBranch('B'));
+        assert.strictEqual(trueEl.outerHTML, expectedBranch('A'));
+        assert.strictEqual(falseEl.outerHTML, expectedBranch('B'));
 
         // Update true branch
         trueStore.set('AA');
         await tick();
         assert.strictEqual(el.outerHTML, expectedEl('AA'));
-        assert.strictEqual(trueEl.outerHTML, expectedTrueBranch('AA'));
-        assert.strictEqual(falseEl.outerHTML, expectedFalseBranch('B'));
+        assert.strictEqual(trueEl.outerHTML, expectedBranch('AA'));
+        assert.strictEqual(falseEl.outerHTML, expectedBranch('B'));
 
         // Switch to false branch
         condStore.set(false);
         await tick();
         assert.strictEqual(el.outerHTML, expectedEl('B'));
-        assert.strictEqual(trueEl.outerHTML, expectedTrueBranch('AA'));
-        assert.strictEqual(falseEl.outerHTML, expectedFalseBranch('B'));
+        assert.strictEqual(trueEl.outerHTML, expectedBranch('AA'));
+        assert.strictEqual(falseEl.outerHTML, expectedBranch('B'));
 
         // Update false branch
         falseStore.set('BB');
         await tick();
         assert.strictEqual(el.outerHTML, expectedEl('BB'));
-        assert.strictEqual(trueEl.outerHTML, expectedTrueBranch('AA'));
-        assert.strictEqual(falseEl.outerHTML, expectedFalseBranch('BB'));
+        assert.strictEqual(trueEl.outerHTML, expectedBranch('AA'));
+        assert.strictEqual(falseEl.outerHTML, expectedBranch('BB'));
 
         // Dispose
-        dispose(el);
+        dispose(el); // This should dispose the current branch only, not the other one
 
         // Try to update both branches and condition
         trueStore.set('AAA');
@@ -286,8 +285,75 @@ describe('dynamic content disposal', () => {
 
         // Should remain unchanged after disposal
         assert.strictEqual(el.outerHTML, expectedEl('BB'));
-        assert.strictEqual(trueEl.outerHTML, expectedTrueBranch('AA'));
-        assert.strictEqual(falseEl.outerHTML, expectedFalseBranch('BB'));
+        assert.strictEqual(trueEl.outerHTML, expectedBranch('AAA'));
+        assert.strictEqual(falseEl.outerHTML, expectedBranch('BB'));
+    });
+
+    it('disposes conditional branch after condition change', async () => {
+        const store = writable(0);
+        const firstCond = derived(store, (value) => value === 0);
+        const secondCond = derived(store, (value) => value === 1);
+        const thirdCond = derived(store, (value) => value === 2);
+
+        const branchAStore = writable('A');
+        const branchBStore = writable('B');
+        const branchCStore = writable('C');
+        const branchDStore = writable('D');
+
+        const branchA = node(html`<span>${branchAStore}</span>`) as Element; // provided directly
+        const branchB = node(html`<span>${branchBStore}</span>`) as Element; // provided through function
+        const branchC = html`<span>${branchCStore}</span>`; // provided as a literal
+        let litD;
+        const branchD = readable((litD = html`<span>${branchDStore}</span>`)); // provided as a readable store of literals
+
+        //prettier-ignore
+        const el = node(
+            html` <div>${cond()
+                    .if(firstCond, branchA)
+                    .elseif(secondCond, () => branchB)
+                    .elseif(thirdCond, branchC)
+                    .else(branchD)
+                }</div>`
+        ) as Element;
+
+        await tick();
+        assert.strictEqual(el.outerHTML, `<div><span>A</span></div>`);
+        assert.isTrue(isDisposable(branchA));
+        assert.isTrue(isDisposable(branchB));
+        assert.isTrue(isDisposable(branchC));
+        assert.isTrue(isDisposable(litD));
+
+        store.update((value) => value + 1); // 1 => branchB
+        await tick();
+        assert.strictEqual(el.outerHTML, `<div><span>B</span></div>`);
+        assert.isTrue(isDisposable(branchA)); // not disposed because provided directly as a node
+        assert.isTrue(isDisposable(branchB));
+        assert.isTrue(isDisposable(branchC));
+        assert.isTrue(isDisposable(litD));
+
+        store.update((value) => value + 1); // 2 => branchC
+        await tick();
+        assert.strictEqual(el.outerHTML, `<div><span>C</span></div>`);
+        assert.isTrue(isDisposable(branchA));
+        assert.isFalse(isDisposable(branchB)); // disposed because provided by a function
+        assert.isTrue(isDisposable(branchC));
+        assert.isTrue(isDisposable(litD));
+
+        store.update((value) => value + 1); // 3 => else branch
+        await tick();
+        assert.strictEqual(el.outerHTML, `<div><span>D</span></div>`);
+        assert.isTrue(isDisposable(branchA));
+        assert.isFalse(isDisposable(branchB));
+        assert.isFalse(isDisposable(branchC)); // disposed because branchC is a literal
+        assert.isTrue(isDisposable(litD));
+
+        store.set(0); // back to branchA
+        await tick();
+        assert.strictEqual(el.outerHTML, `<div><span>A</span></div>`);
+        assert.isTrue(isDisposable(branchA));
+        assert.isFalse(isDisposable(branchB));
+        assert.isFalse(isDisposable(branchC));
+        assert.isFalse(isDisposable(litD)); // disposed because branchD is a readable store of literals
     });
 
     it('disposes loop content', async () => {
@@ -642,7 +708,7 @@ describe('dynamic content disposal', () => {
         const saveHtmlLit = (lit: HtmlLiterals): HtmlLiterals => {
             if (watchedHtmlFirst === undefined) {
                 watchedHtmlFirst = lit;
-            } else if( watchedHtmlSecond === undefined) {
+            } else if (watchedHtmlSecond === undefined) {
                 watchedHtmlSecond = lit;
             }
             return lit;
@@ -665,5 +731,31 @@ describe('dynamic content disposal', () => {
 
         assert.isTrue(watchedHtmlFirst!.disposed);
         assert.isFalse(watchedHtmlSecond!.disposed === true);
+    });
+
+    it('does not dispose twice', async () => {
+        const spy = vi.fn();
+        const obj = disposable({}, spy);
+        assert.isTrue(isDisposable(obj));
+        dispose(obj);
+        expect(spy).toHaveBeenCalledTimes(1);
+        assert.isFalse(isDisposable(obj));
+        spy.mockClear();
+        dispose(obj); // Should not call spy again
+        expect(spy).toHaveBeenCalledTimes(0);
+    });
+
+    it('disposes reused HtmlLiterals', async () => {
+        const lit = html`<span>Reused</span>`;
+        const el = node(lit) as Element;
+
+        await tick();
+        assert.isTrue(isDisposable(lit));
+        dispose(el); // Disposing element should not dispose the HtmlLiterals
+        assert.isFalse(isDisposable(lit));
+
+        const newEl = node(lit) as Element; // Reusing the same HtmlLiterals
+        await tick();
+        assert.isTrue(isDisposable(lit));
     });
 });

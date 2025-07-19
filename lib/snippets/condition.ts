@@ -1,21 +1,32 @@
 import { HtmlLiterals, isHtmlLiterals, node } from '../template/tag';
 import { derived, isReadable, Readable, Unsubscriber, Writable, writable } from '../stores';
-import { dispose } from '../lifecycle/disposable';
+import { disposeRec } from '../lifecycle/disposable';
 
 type ConditionBuilder = {
-    if: (
-        condition: Readable<boolean>,
-        contentIftrue: Node | HtmlLiterals | Readable<Node | HtmlLiterals>
-    ) => Readable<Node> & PostIfBuilder;
-    elseif: (
-        condition: Readable<boolean>,
-        contentIftrue: Node | HtmlLiterals | Readable<Node | HtmlLiterals>
-    ) => Readable<Node> & PostIfBuilder;
-    else: (content: Node | HtmlLiterals | Readable<Node | HtmlLiterals>) => Readable<Node>;
+    if: (condition: Readable<boolean>, contentIftrue: Content | (() => Content)) => Readable<Node> & PostIfBuilder;
+    elseif: (condition: Readable<boolean>, contentIftrue: Content | (() => Content)) => Readable<Node> & PostIfBuilder;
+    else: (content: Content | (() => Content)) => Readable<Node>;
 };
 
 type PreIfBuilder = Pick<ConditionBuilder, 'if'>;
 type PostIfBuilder = Pick<ConditionBuilder, 'elseif' | 'else'>;
+
+type Content = Node | HtmlLiterals | Readable<Node | HtmlLiterals>;
+
+type BranchState = {
+    /**
+     * Unsubscriber for the branch content subscription if it is provided in a store
+     */
+    unsub: Unsubscriber | undefined;
+    /**
+     * Whether the branch is currently active
+     */
+    active: boolean;
+    /**
+     * The current node of the branch, undefined if not active
+     */
+    node: Node | undefined;
+};
 
 const setContent = (nodeStore: Writable<Node>, content: Node | HtmlLiterals) => {
     if (isHtmlLiterals(content)) {
@@ -33,9 +44,10 @@ const bindContent = (nodeStore: Writable<Node>, content: Readable<Node | HtmlLit
 
 const applyContent = (
     nodeStore: Writable<Node>,
-    content: Node | HtmlLiterals | Readable<Node | HtmlLiterals>
+    contentProvider: Content | (() => Content)
 ): Unsubscriber | undefined => {
     let unsub: Unsubscriber | undefined = undefined;
+    const content = typeof contentProvider === 'function' ? contentProvider() : contentProvider;
     isReadable(content) ? (unsub = bindContent(nodeStore, content)) : setContent(nodeStore, content);
     return unsub;
 };
@@ -57,6 +69,47 @@ const _unsub = (unsubs: Array<Unsubscriber>, unsub: Unsubscriber | undefined): b
     return false;
 };
 
+/**
+ * Dispose du noeud d'une branche seulement si ce dernier est issus d'une fonction ou d'un literals.
+ * En effet, dans ce cas, un nouveau noeud peut être regénéré si la branche est réactivée.
+ * Attention : ce n'est vrai que si la fonction de récupération du contenu retourne efectivement une nouvelle instance à chaque appel.
+ */
+const _dispose = (content: Node, contentOrProvider: Content | (() => Content)): void => {
+    // Ne sont disposés que les contenus qui seront regénérés si réinjectés
+    if (
+        typeof contentOrProvider === 'function' ||
+        isHtmlLiterals(contentOrProvider) ||
+        (isReadable(contentOrProvider) && isHtmlLiterals(contentOrProvider.get()))
+    ) {
+        disposeRec(content);
+    }
+};
+
+const activateBranch = (
+    unsubs: Array<Unsubscriber> = [],
+    nodeStore: Writable<Node>,
+    branchState: BranchState,
+    content: Content | (() => Content)
+) => {
+    branchState.unsub = _sub(unsubs, applyContent(nodeStore, content));
+    branchState.node = nodeStore.get();
+    branchState.active = true;
+};
+
+const deactivateBranch = (
+    unsubs: Array<Unsubscriber>,
+    branchState: BranchState,
+    content: Content | (() => Content)
+) => {
+    if (branchState.active) {
+        _unsub(unsubs, branchState.unsub);
+        branchState.unsub = undefined;
+        branchState.node && _dispose(branchState.node, content);
+        branchState.node = undefined;
+        branchState.active = false;
+    }
+};
+
 export const cond = (): PreIfBuilder => {
     const unsubs: Array<Unsubscriber> = [];
     const anchor: Text = document.createTextNode('');
@@ -64,27 +117,21 @@ export const cond = (): PreIfBuilder => {
 
     const nodeStore = writable<Node>(anchor);
 
-    let previousNode: Node = anchor;
-    unsubs.push(
-        nodeStore.subscribe(($node) => {
-            if ($node !== previousNode) {
-                dispose(previousNode);
-                previousNode = $node;
-            }
-        })
-    );
-
     const _if = (
         condition: Readable<boolean>,
-        contentIftrue: Node | HtmlLiterals | Readable<Node | HtmlLiterals>
+        contentIftrue: Content | (() => Content)
     ): Readable<Node> & PostIfBuilder => {
-        let unsub: Unsubscriber | undefined;
+        const branchState: BranchState = {
+            unsub: undefined,
+            active: false,
+            node: undefined
+        };
         unsubs.push(
             condition.subscribe(($cond) => {
                 // TODO microtask debouncer ?
                 $cond
-                    ? (unsub = _sub(unsubs, applyContent(nodeStore, contentIftrue)))
-                    : (_unsub(unsubs, unsub) && (unsub = undefined), nodeStore.set(anchor));
+                    ? activateBranch(unsubs, nodeStore, branchState, contentIftrue)
+                    : (deactivateBranch(unsubs, branchState, contentIftrue), nodeStore.set(anchor));
             })
         );
         onePrevious = condition;
@@ -97,15 +144,19 @@ export const cond = (): PreIfBuilder => {
 
     const _elseif = (
         condition: Readable<boolean>,
-        contentIftrue: Node | HtmlLiterals | Readable<Node | HtmlLiterals>
+        contentIftrue: Content | (() => Content)
     ): Readable<Node> & PostIfBuilder => {
         const _condition = derived([onePrevious, condition], ([$previous, $current]) => !$previous && $current);
-        let unsub: Unsubscriber | undefined;
+        const branchState: BranchState = {
+            unsub: undefined,
+            active: false,
+            node: undefined
+        };
         unsubs.push(
             _condition.subscribe(($cond) => {
                 $cond
-                    ? (unsub = _sub(unsubs, applyContent(nodeStore, contentIftrue)))
-                    : _unsub(unsubs, unsub) && (unsub = undefined);
+                    ? activateBranch(unsubs, nodeStore, branchState, contentIftrue)
+                    : deactivateBranch(unsubs, branchState, contentIftrue);
             })
         );
         onePrevious = derived([onePrevious, condition], ([$previous, $current]) => $previous || $current);
@@ -116,13 +167,17 @@ export const cond = (): PreIfBuilder => {
         });
     };
 
-    const _else = (content: Node | HtmlLiterals | Readable<Node | HtmlLiterals>): Readable<Node> => {
-        let unsub: Unsubscriber | undefined;
+    const _else = (content: Content | (() => Content)): Readable<Node> => {
+        const branchState: BranchState = {
+            unsub: undefined,
+            active: false,
+            node: undefined
+        };
         unsubs.push(
             onePrevious.subscribe(($cond) => {
                 !$cond
-                    ? (unsub = _sub(unsubs, applyContent(nodeStore, content)))
-                    : _unsub(unsubs, unsub) && (unsub = undefined);
+                    ? activateBranch(unsubs, nodeStore, branchState, content)
+                    : deactivateBranch(unsubs, branchState, content);
             })
         );
         return nodeStore;

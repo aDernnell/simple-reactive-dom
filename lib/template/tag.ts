@@ -1,9 +1,16 @@
-import { isReadable, derived, Readable, Unsubscriber, writable, isWritable } from '../stores';
+import { isReadable, derived, Readable, Unsubscriber, writable, isWritable, readonly } from '../stores';
 import { rawHtmlToNode } from '../utils';
 import { Binding, BindingContext, bindStates } from '../binding';
 import { createDebouncer } from '../utils/debounce';
 import { DomUpdateMode } from '../dom/operation';
-import { disposable, dispose, disposeRec, SHALLOW_DISPOSE, shallowDispose } from '../lifecycle/disposable';
+import {
+    disposable,
+    dispose,
+    disposeRec,
+    isDisposable,
+    SHALLOW_DISPOSE,
+    shallowDispose,
+} from '../lifecycle/disposable';
 import { isConditionalAttr, isEventHandler } from './directives';
 import { rebind } from '../binding/rebind';
 
@@ -24,6 +31,15 @@ export const isHtmlLiterals = (value: unknown): value is HtmlLiterals => {
     return typeof value === 'object' && value != null && value.hasOwnProperty(HTML_LITERALS);
 };
 
+const disposeLiterals = (literals: HtmlLiterals): void => {
+    literals.bindings?.splice(0).forEach(dispose);
+    disposeRec(literals.values);
+    literals.node = undefined;
+    literals.bindings = undefined;
+    literals.tmpl = undefined;
+    literals.tmplStores = undefined;
+};
+
 /**
  * Fonction tag pour HTML (Element ou Text)
  * @param strings chaînes de caractères statiques du template
@@ -38,14 +54,7 @@ const htmlLit = (strings: TemplateStringsArray, ...values: unknown[]): HtmlLiter
         values,
     };
 
-    return disposable(literals, () => {
-        literals.bindings?.splice(0).forEach(dispose);
-        disposeRec(literals.values);
-        literals.node = undefined;
-        literals.bindings = undefined;
-        literals.tmpl = undefined;
-        literals.tmplStores = undefined;
-    });
+    return disposable(literals, () => disposeLiterals(literals));
 };
 
 /**
@@ -208,8 +217,15 @@ const createNode = (
         literals.node = node;
     }
 
+    // On s'assure que le literals est un objet disposable, dans le cas où il serait réutilisé pour reconstruire un noeud
+    if (!isDisposable(literals)) {
+        disposable(literals, () => disposeLiterals(literals));
+    }
+
     return disposable(literals.node, () => dispose(literals));
 };
+
+export type Watcher = <T>(store: Readable<T>) => T;
 
 export type DirectOptions = {
     serializer?: (value: any, context?: BindingContext, key?: string) => any;
@@ -222,7 +238,66 @@ export type WatcherOptions = DirectOptions & {
     updateDomMode?: DomUpdateMode;
 };
 
-export type Watcher = <T>(store: Readable<T>) => T;
+/**
+ * Créé un watcher qui surveiller les changements d'état des stores surveillés.
+ * La fonction onWatcherInit est appelée initialement pour enregistrer les stores à surveiller,
+ * puis à chaque changement de l'état d'au moins un des stores surveillés, la fonction onWatchedChange est appelée.
+ * La fonction onWatchedChange est appelée avec une fonction watch en paramètre qui permet d'enregistrer les nouveaux stores à surveiller suite au changement d'état.
+ * @param options options du watcher, notamment debounceWatches (par défaut = true) pour limiter les appels à onWatchedChange
+ * @param onWatcherInit fonction appelée initialement pour enregistrer les stores à surveiller.
+ * @param onWatchedChange fonction appelée à chaque changement de l'état d'au moins un des stores surveillés.
+ * @returns un fonction qui permet de désabonner le watcher
+ */
+const createWatcher = (
+    options: WatcherOptions | undefined,
+    onWatcherInit: (watch: Watcher) => void,
+    onWatchedChange: (watch: Watcher) => void
+): Unsubscriber => {
+    const debounceWatches = options?.debounceWatches ?? true;
+    const watched: Set<Readable<any>> = new Set();
+
+    /**
+     * Enregistre un store qui conditionne une valeur à substituer dans le literals ou la reconstruction complète du noeud.
+     * Ex: ${'count is < 10 : ' + (watch(count) < 10 ? 'true' : 'false')}
+     * La valeur à substituer n'est pas un store mais un string, pour autant elle varie en fonction de l'état du store count
+     * donc il faut la recalculer si l'état du store change
+     * Autre exemple : ${watch(divOrSpan) ? html`<div></div>` : html`<span></span>`}
+     * Dans ce cas ci le noeud entier doit être reconstruit si l'état du store divOrSpan change car le template HTML est différent.
+     * @param store le store à surveiller
+     */
+    const watch = (store: Readable<unknown>): any => {
+        watched.add(store);
+        return store.get();
+    };
+
+    let triggerUpdateUnsub: Unsubscriber;
+    let triggerUpdate: Readable<object>;
+    const debounce = debounceWatches ? createDebouncer() : undefined;
+
+    // Construit ou reconstruit le déclencheur de l'appel à onWatchedChange (basé sur les stores enregistrés avec watch())
+    const buildWatcher = () => {
+        triggerUpdateUnsub?.();
+        triggerUpdate = derived([...watched], (_) => ({}));
+        watched.clear();
+        let initialCall = true;
+        triggerUpdateUnsub = triggerUpdate.subscribe(() => {
+            if (!initialCall) {
+                debounce
+                    ? debounce(() => (onWatchedChange(watch), buildWatcher()))
+                    : (onWatchedChange(watch), buildWatcher());
+            }
+            initialCall = false;
+        });
+    };
+
+    onWatcherInit(watch);
+    buildWatcher();
+
+    return () => {
+        triggerUpdateUnsub?.();
+        watched.clear();
+    };
+};
 
 /** Signature pour les surcharges de la fonction node() */
 export type NodeFn = {
@@ -249,69 +324,73 @@ export const node: NodeFn = (htmlOrFn: HtmlLiterals | Function, options?: Direct
     } else {
         /* Mode watcher */
         const fn = htmlOrFn as Function;
-        const unsubs: Array<Unsubscriber> = [];
-        const debounceWatches = (options as WatcherOptions)?.debounceWatches ?? true;
-        const watched: Array<Readable<any>> = [];
 
-        /**
-         * Enregistre un store qui conditionne une valeur à substituer dans le literals
-         * Ex: ${'count is < 10 : ' + (watch(count) < 10 ? 'true' : 'false')}
-         * La valeur à substituer n'est pas un store mais un string, pour autant elle varie en fonction de l'état du store count
-         * donc il faut la recalculer si l'état du store change
-         */
-        const watch = (store: Readable<unknown>): any => {
-            watched.push(store);
-            return store.get();
-        };
+        let literals: HtmlLiterals;
+        let el: Node;
 
-        let literals = fn(watch) as HtmlLiterals;
-        const el = createNode(literals, options);
+        const disposeWatcher = createWatcher(
+            options as WatcherOptions,
+            (watch: Watcher) => { // Initialization
+                literals = fn(watch) as HtmlLiterals;
+                el = createNode(literals, options);
+            },
+            (watch: Watcher) => { // Update
+                const newLiterals = fn(watch) as HtmlLiterals;
 
-        let triggerUpdateUnsub: Unsubscriber;
-        let triggerUpdate: Readable<object>;
-        const debounce = debounceWatches ? createDebouncer() : undefined;
+                if (newLiterals.strings !== literals.strings) {
+                    console.error(
+                        'Function parameter for node() in watch mode must return the same literals strings on each call. ' +
+                            'If you want a dynamic literals string, please consider using dynNode() instead.'
+                    );
+                }
 
-        // Construit ou reconstruit le déclencheur de recalculation des substitutions (basé sur les stores enregistrés avec watch())
-        const buildWatcher = () => {
-            const unsubIdx = triggerUpdateUnsub ? unsubs.indexOf(triggerUpdateUnsub) : -1;
-            unsubIdx != -1 && unsubs.splice(unsubIdx, 1);
-            triggerUpdateUnsub?.();
-            triggerUpdate = derived(watched, (_) => ({}));
-            let initDerived = true;
-            unsubs.push(
-                (triggerUpdateUnsub = triggerUpdate.subscribe(() => {
-                    if (!initDerived) {
-                        // On exclus le premier appel qui a lieu lors de l'initialisation du store dérivé
-                        debounce ? debounce(recalculateSubstitutions) : recalculateSubstitutions();
-                    }
-                    initDerived = false;
-                }))
-            );
-        };
+                // literals.bindings (et donc el) est mis à jour ici
+                rebind(literals, newLiterals, options?.updateDomMode, options?.serializer);
 
-        const recalculateSubstitutions = () => {
-            watched.splice(0);
-            const newLiterals = fn(watch) as HtmlLiterals;
+                // On appelle uniquement les fonction dispose ajoutées par l'utilisateur
+                // et non la fonction dispose de base du literals (qui désouscrit les bindings et appelle disposeRec() sur les valeurs !)
+                shallowDispose(literals);
+                // @ts-expect-error (le literals est nécessairement un objet disposable)
+                literals[SHALLOW_DISPOSE] = newLiterals[SHALLOW_DISPOSE];
+                literals.values = newLiterals.values;
+            }
+        );
 
-            // literals.bindings est mis à jour ici
-            rebind(literals, newLiterals, options?.updateDomMode, options?.serializer);
-
-            // On appelle uniquement les fonction dispose ajoutées par l'utilisateur
-            // et non la fonction dispose de base du literals (qui désouscrit les bindings et appelle disposeRec() sur les valeurs !)
-            shallowDispose(literals);
-            // @ts-expect-error (le literals est nécessairement un objet disposable)
-            literals[SHALLOW_DISPOSE] = newLiterals[SHALLOW_DISPOSE];
-            literals.values = newLiterals.values;
-
-            buildWatcher();
-        };
-
-        buildWatcher();
-
-        return disposable(el, () => {
-            unsubs.forEach((unsub) => unsub());
+        return disposable(el!, () => {
+            disposeWatcher();
         });
     }
+};
+
+/**
+ * Fonction similaire à node() en mode watch mais qui retourne un Readable<Node> et regénère entièrement le noeud
+ * à chaque changement d'état des stores surveillés.
+ * Cette fonction est utile dans le cas où la fonction fn retourne un literals potentiellement différent à chaque appel.
+ * @param fn fonction qui retourne le résultat de la fonction tag
+ * @param options (optionel) : objet contenant les options
+ * @returns un Readable<Node>
+ */
+export const dynNode = (fn: (watch: Watcher) => HtmlLiterals, options?: WatcherOptions): Readable<Node> => {
+    const nodeStore = writable<Node>();
+
+    const disposeWatcher = createWatcher(
+        options as WatcherOptions,
+        (watch: Watcher) => { // Initialization
+            const literals = fn(watch) as HtmlLiterals;
+            nodeStore.set(createNode(literals, options));
+        },
+        (watch: Watcher) => { // Update
+            const newLiterals = fn(watch) as HtmlLiterals;
+            nodeStore.update((el) => {
+                el && dispose(el);
+                return createNode(newLiterals, options);
+            });
+        }
+    );
+
+    return disposable(readonly(nodeStore), () => {
+        disposeWatcher();
+    });
 };
 
 /**

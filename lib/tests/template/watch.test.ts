@@ -291,6 +291,31 @@ describe('node html in watch mode', () => {
         assert.equal(el.outerHTML, '<div><div class="even">Even</div></div>');
     });
 
+    it('disallows dynamic root html literals', async () => {
+        const store = writable(0);
+
+        // prettier-ignore
+        const el: Element = node((watch) =>
+            watch(store) % 2 === 0 
+                ? html`<div class="even">Even</div>` 
+                : html`<span class="odd">Odd</span>`
+        ) as Element;
+
+        await tick();
+        assert.equal(el.outerHTML, '<div class="even">Even</div>');
+
+        // Spy on console.error
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation((...args) => {
+            console.log(...args);
+        });
+
+        store.set(1);
+        await tick();
+
+        expect(errorSpy).toHaveBeenCalled();
+        errorSpy.mockRestore();
+    });
+
     it('watches on condition result', async () => {
         const store = writable(0);
         const storeEven = writable(0);
@@ -527,5 +552,16 @@ describe('node html in watch mode', () => {
         store2.set('store2 new');
         await tick();
         assert.equal(el.outerHTML, '<div>store2 new - True</div>');
+    });
+
+    it('watches the same store multiples times', async () => {
+        const store = writable('initial value');
+        const el = node((watch) => html` <div>${watch(store)} ${watch(store)}</div> `) as Element;
+        await tick();
+
+        assert.equal(el.outerHTML, '<div>initial value initial value</div>');
+        store.set('new value');
+        await tick();
+        assert.equal(el.outerHTML, '<div>new value new value</div>');
     });
 });

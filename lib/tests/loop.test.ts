@@ -197,7 +197,7 @@ describe('loop', () => {
         assert.isFalse((nodesStore.get() as Array<Element>)[0] == firstItem);
     });
 
-    it('dispose content stores from literals', async () => {
+    it('disposes content stores from literals', async () => {
         const firstItem = { id: 1, value: writable('A') };
         const items = writable([firstItem, { id: 2, value: writable('B') }, { id: 3, value: writable('C') }]);
         const firstLiterals = html`<span>${firstItem.value}</span>`;
@@ -230,7 +230,7 @@ describe('loop', () => {
         assert.isTrue(firstLiterals.bindings == undefined);
     });
 
-    it('dispose content stores from elements', async () => {
+    it('disposes content stores from elements', async () => {
         const firstItem = { id: 1, value: writable('A') };
         const items = writable([firstItem, { id: 2, value: writable('B') }, { id: 3, value: writable('C') }]);
 

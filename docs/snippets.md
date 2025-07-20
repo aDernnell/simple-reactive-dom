@@ -93,6 +93,25 @@ const nodeStore = node(html`
 `);
 ```
 
+## Content disposal
+
+### For content updates
+
+When removed from the DOM from reactive update, the node content, whether it's a conditional branch or a loop item, is automatically disposed of.
+It means that any resources or event listeners associated with the content are cleaned up.
+
+There is one exception though:
+
+!> for conditional content provided directly with an instance of `Node` or `Readable<Node>` as parameter, the content is not disposed. This is due to the fact that these instances are reused throughout branch activations. In this case, you should ensure that the content is properly cleaned up when it is no longer needed.
+
+However, if you use a function that returns the content or if you use a literals (instance of `HtmlLiterals` or `Readable<HtmlLiterals>`), it will be correctly disposed of when the conditional branch is removed from the DOM.
+
+### For embedded snippet removal
+
+When the node containing the snippet is removed from the DOM, the content is disposed of as follows:
+- For `loop`, all the currently displayed item nodes at the time of removal are disposed of.
+- For `cond`, the current active branch at the time of removal is disposed of.
+
 ## Diffing
 
 The `loop` snippet supports diffing for efficient DOM updates.  
@@ -186,20 +205,20 @@ _Sub functions:_
 
   Adds the first condition. 
 
-  _Parameters:_
+  _Parameters:_ 
     - `condition`: `Readable<boolean>` — Store representing the condition.
-    - `contentIfTrue`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals>` — Content to display if condition is true.
+    - `contentIfTrue`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals> | (() => Node | HtmlLiterals | Readable<Node | HtmlLiterals>)` — Content to display if condition is true, or function that provides such content.
 
   _Returns:_  
   A readable store containing the current node, with additional `.elseif` and `.else` methods.
 
-  * .**elseif**(condition, contentIfTrue)`
+  * .**elseif**(condition, contentIfTrue)
 
   Adds an additional condition.
 
-  _Parameters:_
+  _Parameters:_ 
     - `condition`: `Readable<boolean>` — Store representing the condition.
-    - `contentIfTrue`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals>` — Content to display if condition is true.
+    - `contentIfTrue`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals> | (() => Node | HtmlLiterals | Readable<Node | HtmlLiterals>)` — Content to display if condition is true, or function that provides such content.
 
   _Returns:_  
   A readable store containing the current node, with additional `.elseif` and `.else` methods.
@@ -208,8 +227,8 @@ _Sub functions:_
 
   Content to display if no previous condition matched.
 
-  _Parameters:_
-    - `content`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals>` — Content to display if no previous condition matched.
+  _Parameters:_ 
+    - `content`: `Node | HtmlLiterals | Readable<Node | HtmlLiterals> | (() => Node | HtmlLiterals | Readable<Node | HtmlLiterals>)` — Content to display if no previous condition matched, or function that provides such content.
 
   _Returns:_  
   A readable store containing the current node.

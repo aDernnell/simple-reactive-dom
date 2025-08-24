@@ -1,5 +1,5 @@
 import { isReadable, derived, Readable, Unsubscriber, writable, isWritable, readonly } from '../stores';
-import { rawHtmlToNode } from '../utils';
+import { dispatchEventOnAllElements, rawHtmlToNode } from '../utils';
 import { Binding, BindingContext, bindStates } from '../binding';
 import { createDebouncer } from '../utils/debounce';
 import { DomUpdateMode } from '../dom/operation';
@@ -219,7 +219,11 @@ const createNode = (
             updateDomMode: options?.updateDomMode,
         });
 
-        node.dispatchEvent(new Event('ready'));
+        // Dispatch 'ready' event on all element nodes
+        if(node instanceof Element) {
+            dispatchEventOnAllElements(new Event('ready'), node);
+        }
+
         literals.node = node;
     }
 
@@ -229,7 +233,10 @@ const createNode = (
     }
 
     return disposable(literals.node, () => {
-        literals.node?.dispatchEvent(new Event('dispose'));
+        // Dispatch 'dispose' event on all element nodes
+        if(literals.node instanceof Element) {
+            dispatchEventOnAllElements(new Event('dispose'), literals.node);
+        }
         dispose(literals);
     });
 };
@@ -339,11 +346,13 @@ export const node: NodeFn = (htmlOrFn: HtmlLiterals | Function, options?: Direct
 
         const disposeWatcher = createWatcher(
             options as WatcherOptions,
-            (watch: Watcher) => { // Initialization
+            (watch: Watcher) => {
+                // Initialization
                 literals = fn(watch) as HtmlLiterals;
                 el = createNode(literals, options);
             },
-            (watch: Watcher) => { // Update
+            (watch: Watcher) => {
+                // Update
                 const newLiterals = fn(watch) as HtmlLiterals;
 
                 if (newLiterals.strings !== literals.strings) {
@@ -384,11 +393,13 @@ export const dynNode = (fn: (watch: Watcher) => HtmlLiterals, options?: WatcherO
 
     const disposeWatcher = createWatcher(
         options as WatcherOptions,
-        (watch: Watcher) => { // Initialization
+        (watch: Watcher) => {
+            // Initialization
             const literals = fn(watch) as HtmlLiterals;
             nodeStore.set(createNode(literals, options));
         },
-        (watch: Watcher) => { // Update
+        (watch: Watcher) => {
+            // Update
             const newLiterals = fn(watch) as HtmlLiterals;
             nodeStore.update((el) => {
                 el && dispose(el);

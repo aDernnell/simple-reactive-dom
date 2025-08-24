@@ -3,7 +3,7 @@ import { writable } from '../../stores';
 import { call, when, opt, action } from '../../template/directives';
 import { html, node } from '../../template/tag';
 import { tick } from '../../utils/debounce';
-import { dispose } from '../..';
+import { dispose, getElementRefs } from '../..';
 
 describe('call directive : binding event handlers', () => {
     it('adds event handler', async () => {
@@ -390,6 +390,27 @@ describe('action directive : use lifecycle functions', () => {
         expect(actionFn).toHaveBeenCalledWith(el, params);
     });
 
+    it('calls the action function on nested elements', async () => {
+        const actionFnA = vi.fn();
+        const actionFnB = vi.fn();
+        const el = node(html`
+            <div>
+                <span ref:span use=${action(actionFnA)}>Hello</span>
+                <div>
+                    <button ref:button use=${action(actionFnB)}>Click me</button>
+                </div>
+            </div>
+        `) as Element;
+
+        const refs = getElementRefs(el);
+        const spanEL = refs.span;
+        const buttonEL = refs.button;
+
+        await tick();
+        expect(actionFnA).toHaveBeenCalledWith(spanEL, undefined);
+        expect(actionFnB).toHaveBeenCalledWith(buttonEL, undefined);
+    });
+
     it('disposes the action function when the node is removed', async () => {
         const disposeFn = vi.fn();
         const actionFn = vi.fn(() => disposeFn);
@@ -400,5 +421,25 @@ describe('action directive : use lifecycle functions', () => {
         await tick();
         dispose(el);
         expect(disposeFn).toHaveBeenCalled();
+    });
+
+    it('disposes the action function on nested elements when the node is removed', async () => {
+        const disposeFnA = vi.fn();
+        const disposeFnB = vi.fn();
+        const actionFnA = vi.fn(() => disposeFnA);
+        const actionFnB = vi.fn(() => disposeFnB);
+        const el = node(html`
+            <div>
+                <span ref:span use=${action(actionFnA)}>Hello</span>
+                <div>
+                    <button ref:button use=${action(actionFnB)}>Click me</button>
+                </div>
+            </div>
+        `) as Element;
+
+        await tick();
+        dispose(el);
+        expect(disposeFnA).toHaveBeenCalled();
+        expect(disposeFnB).toHaveBeenCalled();
     });
 });

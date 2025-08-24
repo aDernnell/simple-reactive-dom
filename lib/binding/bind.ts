@@ -228,10 +228,10 @@ export const bindAttrValue = (
                 if (attrValue.action) {
                     node.addEventListener('ready', (_event) => {
                         attrValue.dispose = attrValue.action!(node, attrValue.params);
-                    });
+                    }, { once: true });
                     node.addEventListener('dispose', (_event) => {
                         attrValue.dispose?.();
-                    });
+                    }, { once: true });
                 }
             }
             // attribut de type textuel

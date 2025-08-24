@@ -13,6 +13,8 @@ In order to templates to be more expressive and as close as possible to HTML, th
     Allow to conditionally render attributes.
 - **call**  
     Allow to declare inline event handlers.
+- **action**  
+    Allow to declare node lifecycle functions.
 
 ## Examples
 
@@ -44,6 +46,20 @@ const onClickHandler = (event) => console.log('Button clicked!', event);
 html`<button onclick=${call(onClickHandler)}>Click me</button>`
 ```
 Note: Quotes are optional around the attribute value when using `call`.
+
+### `action`
+```js
+const myaction = (node, params) => {
+    // initialization code called when the node is created
+    return () => {
+        // cleanup code called when the node is destroyed
+    };
+};
+html`<div use=${action(myaction, {parameter:'value'})}></div>`
+```
+Note: Quotes are optional around the attribute value when using `action`.
+
+Note2: The attribute name can be whatever you want, but using `use` is recommended for clarity.
 
 ## API Reference
 
@@ -105,3 +121,19 @@ _Returns:_
 An `EventHandler` object to use as an attribute value.
 
 ---
+
+<big>**action**</big>
+
+Allows you to declare a function that is called when the node is created and that can return a cleanup function called when the node is destroyed.
+
+_Signature:_
+```typescript
+action<N extends Node, P extends object>(init: (node: N, params: P) => (() => void) | undefined, params?: P): ActionAttr<N,P>
+```
+
+_Parameters:_
+- `init` — The initialization function called when the node is created. This function may return a cleanup function to be called when the node is destroyed.
+- `params` — Optional parameters to pass to the initialization function.
+
+_Returns:_  
+An `ActionAttr` object to use as an attribute value.

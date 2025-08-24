@@ -1,7 +1,7 @@
 import { derived, Readable, Unsubscriber } from '../stores';
 import { createDomDebouncer, domOp, DomUpdateMode } from '../dom/operation';
 import { disposable, dispose } from '../lifecycle/disposable';
-import { EventHandler, isConditionalAttr, isEventHandler } from '../template';
+import { EventHandler, isActionAttr, isConditionalAttr, isEventHandler } from '../template';
 import { DomTargetWrapper, updateDomTarget } from './target';
 import { extractTemplateKeys, injectValuesInTemplate, getDomLinkTmplDescriptor } from './parse';
 
@@ -219,6 +219,20 @@ export const bindAttrValue = (
                     updateDomMode,
                     debouncer
                 );
+            }
+            // attribut de type action
+            else if (isActionAttr(attrValue)) {
+                // Pas de domOp ici car les event listeners doivent être appliqués immédiatement !
+                // Autrement l'évènemnet 'ready' est déclenché avant que le listener ne soit attaché.
+                node.removeAttribute(attr.name);
+                if (attrValue.action) {
+                    node.addEventListener('ready', (_event) => {
+                        attrValue.dispose = attrValue.action!(node, attrValue.params);
+                    });
+                    node.addEventListener('dispose', (_event) => {
+                        attrValue.dispose?.();
+                    });
+                }
             }
             // attribut de type textuel
             else {

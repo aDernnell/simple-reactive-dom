@@ -165,6 +165,31 @@ export const readonly = <T>(store: Writable<T>): Readable<T> => {
 };
 
 /**
+ * Adds metadata to a custom writable store so as it is detected as writable by isWritable()
+ * @param obj custom writable store
+ * @returns the custom writable store with metadata added
+ */
+export const asWritable = <T>(obj: Writable<T>): Writable<T> => {
+    Object.assign(obj, {
+        [READABLE_TAG]: true,
+        [WRITABLE_TAG]: true,
+    });
+    return obj;
+};
+
+/**
+ * Adds metadata to a custom readable store so as it is detected as readable by isReadable()
+ * @param obj custom readable store
+ * @returns the custom readable store with metadata added
+ */
+export const asReadable = <T>(obj: Readable<T>): Readable<T> => {
+    Object.assign(obj, {
+        [READABLE_TAG]: true,
+    });
+    return obj;
+};
+
+/**
  * Get the current value from a store by subscribing and immediately unsubscribing.
  * This function exists mostly for compatibility with RxJS observable,
  * otherwise store.get() should be used instead

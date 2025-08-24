@@ -1,4 +1,4 @@
-import { ConditionalAttr, EventHandler, isConditionalAttr, isEventHandler } from '../template';
+import { ActionAttr, ConditionalAttr, EventHandler, isActionAttr, isConditionalAttr, isEventHandler } from '../template';
 import { BINDING_AGGREGATE } from './bind';
 
 const escapeRegex = (value: string) => {
@@ -77,10 +77,14 @@ export const injectValuesInTemplate = (
     template: string,
     attrName: string | undefined,
     serializeFn: (value: any, key: string) => string
-): EventHandler | ConditionalAttr | string => {
-    let newValue: EventHandler | ConditionalAttr | string = template;
+): EventHandler | ConditionalAttr | ActionAttr<Node, object> | string => {
+    let newValue: EventHandler | ConditionalAttr | ActionAttr<Node, object> | string = template;
     // Cas particulier d'un attribut de type conditionnel
     if (isConditionalAttr(value) && attrName) {
+        newValue = value;
+    }
+    // Cas particulier d'un attribut de type action
+    else if (isActionAttr(value) && attrName) {
         newValue = value;
     }
     // Cas particulier d'un attribut de type gestionnaire d'évènement

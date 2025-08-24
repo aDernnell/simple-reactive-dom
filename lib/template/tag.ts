@@ -11,7 +11,7 @@ import {
     SHALLOW_DISPOSE,
     shallowDispose,
 } from '../lifecycle/disposable';
-import { isConditionalAttr, isEventHandler } from './directives';
+import { isActionAttr, isConditionalAttr, isEventHandler } from './directives';
 import { rebind } from '../binding/rebind';
 
 export type HtmlLiterals = {
@@ -128,6 +128,11 @@ const tmplValue = (bindingIndex: number, value: unknown, previousStr: string): s
         // Les quillemets englobant la valeur de l'attribut sont facultatifs, on les rajoute si non présents
         addQuotes = !previousStr[previousStr.length - 1].match(/['"]/);
     }
+    // Cas particulier d'un attribut de type action
+    else if (isActionAttr(value)) {
+        // Les quillemets englobant la valeur de l'attribut sont facultatifs, on les rajoute si non présents
+        addQuotes = !previousStr[previousStr.length - 1].match(/['"]/);
+    }
 
     return addQuotes ? `"${tmplVal}"` : `${tmplVal}`;
 };
@@ -214,6 +219,7 @@ const createNode = (
             updateDomMode: options?.updateDomMode,
         });
 
+        node.dispatchEvent(new Event('ready'));
         literals.node = node;
     }
 
@@ -222,7 +228,10 @@ const createNode = (
         disposable(literals, () => disposeLiterals(literals));
     }
 
-    return disposable(literals.node, () => dispose(literals));
+    return disposable(literals.node, () => {
+        literals.node?.dispatchEvent(new Event('dispose'));
+        dispose(literals);
+    });
 };
 
 export type Watcher = <T>(store: Readable<T>) => T;

@@ -1,5 +1,6 @@
-import { derived, get, isWritable, isReadable, Readable, readable, readonly, writable } from "../stores";
+import { derived, get, isWritable, isReadable, Readable, readable, readonly, writable, asWritable, asReadable, Writable } from "../stores";
 import { describe, it, assert } from "vitest";
+import { noop } from "../utils";
 
 describe('writable', () => {
 	it('creates a writable store', () => {
@@ -599,5 +600,29 @@ describe('readonly', () => {
 
 		assert.isFalse(isWritable(readableStore));
 		assert.isTrue(isReadable(readableStore));
+	});
+});
+
+describe('casting custom stores', () => {
+	it('detects custom writable stores', () => {
+		const customStore: Writable<void> = {
+			subscribe: () => noop,
+			get: noop,
+			set: noop,
+			update: noop,
+		};
+		const store = asWritable(customStore);
+		assert.isTrue(isWritable(store));
+		assert.isTrue(isReadable(store));
+	});
+
+	it('detects custom readable stores', () => {
+		const customStore: Readable<void> = {
+			subscribe: () => noop,
+			get: noop,
+		};
+		const store = asReadable(customStore);
+		assert.isFalse(isWritable(store));
+		assert.isTrue(isReadable(store));
 	});
 });

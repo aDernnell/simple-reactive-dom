@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, assert } from 'vitest';
 import { writable } from '../../stores';
-import { call, when, opt } from '../../template/directives';
+import { call, when, opt, action } from '../../template/directives';
 import { html, node } from '../../template/tag';
 import { tick } from '../../utils/debounce';
+import { dispose } from '../..';
 
 describe('call directive : binding event handlers', () => {
     it('adds event handler', async () => {
@@ -351,5 +352,53 @@ describe('opt directive : binding optional values', () => {
                 .length,
             1
         );
+    });
+});
+
+describe('action directive : use lifecycle functions', () => {
+    it('calls the action function when the node is created', async () => {
+        const actionFn = vi.fn();
+
+        // Without quotes
+        const el = node(html`
+            <div use=${action(actionFn)}></div>
+        `) as Element;
+
+        await tick();
+        expect(actionFn).toHaveBeenCalledWith(el, undefined);
+
+        actionFn.mockClear();
+
+        // With quotes
+        const el2 = node(html`
+            <div use="${action(actionFn)}"></div>
+        `) as Element;
+
+        await tick();
+        expect(actionFn).toHaveBeenCalledWith(el2, undefined);
+
+    });
+
+    it('pass params to the action function', async () => {
+        const actionFn = vi.fn();
+        const params = { foo: 'bar' };
+        const el = node(html`
+            <div use=${action(actionFn, params)}></div>
+        `) as Element;
+
+        await tick();
+        expect(actionFn).toHaveBeenCalledWith(el, params);
+    });
+
+    it('disposes the action function when the node is removed', async () => {
+        const disposeFn = vi.fn();
+        const actionFn = vi.fn(() => disposeFn);
+        const el = node(html`
+            <div use=${action(actionFn)}></div>
+        `) as Element;
+
+        await tick();
+        dispose(el);
+        expect(disposeFn).toHaveBeenCalled();
     });
 });

@@ -86,6 +86,18 @@ describe('binding states', () => {
         }
     });
 
+    it('binds state in input value', async () => {
+        const store = writable('');
+
+        const el = rawHtmlToNode(rawHtml`<input type="text" name="searchInput" placeholder="Search..." value="#{inputValue}" />`) as HTMLInputElement;
+
+        bindStates(el, { inputValue: store  });
+        assert.equal(el.value, '#{inputValue}');
+        await tick();
+        //assert.equal(el.getAttribute('value'), '');
+        assert.equal(el.value, '');
+    });
+
     it('binds states in every attrs and text nodes recursivelly', async () => {
         // prettier-ignore
         const el = rawHtmlToNode(rawHtml`

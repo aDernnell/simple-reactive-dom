@@ -11,7 +11,7 @@ import {
     SHALLOW_DISPOSE,
     shallowDispose,
 } from '../lifecycle/disposable';
-import { isActionAttr, isConditionalAttr, isEventHandler } from './directives';
+import { isActionAttr, isConditionalAttr, isEventHandler, isProp } from './directives';
 import { rebind } from '../binding/rebind';
 
 export type HtmlLiterals = {
@@ -130,6 +130,11 @@ const tmplValue = (bindingIndex: number, value: unknown, previousStr: string): s
     }
     // Cas particulier d'un attribut de type action
     else if (isActionAttr(value)) {
+        // Les quillemets englobant la valeur de l'attribut sont facultatifs, on les rajoute si non présents
+        addQuotes = !previousStr[previousStr.length - 1].match(/['"]/);
+    }
+    // Cas particulier d'un attribut de type property
+    else if (isProp(value) || (isReadable(value) && isProp(value.get()))) {
         // Les quillemets englobant la valeur de l'attribut sont facultatifs, on les rajoute si non présents
         addQuotes = !previousStr[previousStr.length - 1].match(/['"]/);
     }

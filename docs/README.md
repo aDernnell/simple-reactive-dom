@@ -54,7 +54,7 @@ store.update(v => v++);
 ?> See [Reactivity section](/reactivity) for more informations.
 
 ### Directives
-Directives are special functions that can be used in templates to control how embedded values are handled by the framework. They allow you to conditionally apply attributes (`when()`), add inline event handlers (`call()`), and handle optional values (`opt()`).
+Directives are special functions that can be used in templates to control how embedded values are handled by the framework. They allow you to conditionally apply attributes (`when()`), apply properties (`prop()`), add inline event handlers (`call()`), and handle optional values (`opt()`).
 ```js
 const activeClass: Writable<string | undefined> = writable('active');
 const handler = () => console.log('Button clicked');

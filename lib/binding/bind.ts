@@ -1,7 +1,7 @@
 import { derived, Readable, Unsubscriber } from '../stores';
 import { createDomDebouncer, domOp, DomUpdateMode } from '../dom/operation';
 import { disposable, dispose } from '../lifecycle/disposable';
-import { EventHandler, isActionAttr, isConditionalAttr, isEventHandler } from '../template';
+import { EventHandler, isActionAttr, isConditionalAttr, isEventHandler, isProp } from '../template';
 import { DomTargetWrapper, updateDomTarget } from './target';
 import { extractTemplateKeys, injectValuesInTemplate, getDomLinkTmplDescriptor } from './parse';
 
@@ -233,6 +233,10 @@ export const bindAttrValue = (
                         attrValue.dispose?.();
                     }, { once: true });
                 }
+            }
+            // attribut de type property
+            else if (isProp(attrValue)) {
+                domOp(() => (node as any)[attr.name] = attrValue.value, updateDomMode, debouncer);
             }
             // attribut de type textuel
             else {

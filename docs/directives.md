@@ -15,6 +15,8 @@ In order to templates to be more expressive and as close as possible to HTML, th
     Allow to declare inline event handlers.
 - **action**  
     Allow to declare node lifecycle functions.
+- **prop**  
+    Allow to set properties on DOM elements.  
 
 ## Examples
 
@@ -60,6 +62,14 @@ html`<div use=${action(myaction, {parameter:'value'})}></div>`
 Note: Quotes are optional around the attribute value when using `action`.
 
 Note2: The attribute name can be whatever you want, but using `use` is recommended for clarity.
+
+### `prop`
+```js
+const store = writable('toto');
+html`<input type="text" value=${prop('toto')} />`
+html`<input type="text" value=${prop(store)} />`
+```
+Note: Quotes are optional around the attribute value when using `prop`.
 
 ## API Reference
 
@@ -137,3 +147,23 @@ _Parameters:_
 
 _Returns:_  
 An `ActionAttr` object to use as an attribute value.
+
+---
+
+<big>**prop**</big>
+
+Allows you to set properties on DOM elements.
+
+The resulting object `Prop<T>` or store can be used directly in the template as an attribute value and is interpreted as a property to set on the DOM element, i.e `element[propertyName] = value` instead of `element.setAttribute(attributeName, value)`.
+
+_Signatures:_
+```typescript
+prop<T>(value: T): Prop<T>
+prop<T>(value: Readable<T>): Readable<Prop<T>>
+```
+
+_Parameters:_
+- `value` — The value or store to set as a property.
+
+_Returns:_  
+A `Prop<T>` object or a readable store of `Prop<T>` to use as an attribute value.

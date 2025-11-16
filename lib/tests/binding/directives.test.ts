@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, assert } from 'vitest';
 import { writable } from '../../stores';
-import { call, when, opt, action } from '../../template/directives';
+import { call, when, opt, action, prop } from '../../template/directives';
 import { html, node } from '../../template/tag';
 import { tick } from '../../utils/debounce';
 import { dispose, getElementRefs } from '../..';
@@ -441,5 +441,43 @@ describe('action directive : use lifecycle functions', () => {
         dispose(el);
         expect(disposeFnA).toHaveBeenCalled();
         expect(disposeFnB).toHaveBeenCalled();
+    });
+});
+
+describe('prop directive : binding properties', () => {
+    it('binds property using value', async () => {
+        const el = node(html`<input type="text" value=${prop('toto')} />`) as HTMLInputElement;
+        await tick();
+        expect(el.value).toBe('toto');
+
+        const el2 = node(html`<input type="checkbox" checked=${prop(true)} />`) as HTMLInputElement;
+        await tick();
+        expect(el2.checked).toBe(true);
+
+        const el3 = node(html`<input type="text" value=${prop('tata')} />`) as HTMLInputElement;
+        await tick();
+        expect(el3.value).toBe('tata');
+
+        const el4 = node(html`<input type="checkbox" checked=${prop(false)} />`) as HTMLInputElement;
+        await tick();
+        expect(el4.checked).toBe(false);
+    });
+
+    it('binds property using store value', async () => {
+        const valueStore = writable<string>('toto');
+        const el = node(html`<input type="text" value=${prop(valueStore)} />`) as HTMLInputElement;
+        await tick();
+        expect(el.value).toBe('toto');
+        valueStore.set('tata');
+        await tick();
+        expect(el.value).toBe('tata');
+    
+        const booleanStore = writable<boolean>(false);
+        const el1 = node(html`<input type="checkbox" checked=${prop(booleanStore)} />`) as HTMLInputElement;
+        await tick();
+        expect(el1.checked).toBe(false);
+        booleanStore.set(true);
+        await tick();
+        expect(el1.checked).toBe(true);
     });
 });

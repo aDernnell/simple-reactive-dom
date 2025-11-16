@@ -3,6 +3,7 @@ import { derived, isReadable, readable, Readable, writable } from '../stores';
 const COND_ATTR = Symbol.for('cond_attr');
 const EV_HANDLER = Symbol.for('ev_handler');
 const ACTION_ATTR = Symbol.for('action_attr');
+const PROP = Symbol.for('prop');
 
 export type ConditionalAttr = {
     cond: boolean;
@@ -22,6 +23,11 @@ export type ActionAttr<N extends Node, P extends object> = {
     [ACTION_ATTR]: true;
 };
 
+export type Prop<T = unknown> = {
+    value: T;
+    [PROP]: true;
+};
+
 export const isConditionalAttr = (param: unknown): param is ConditionalAttr => {
     return typeof param === 'object' && param !== null && COND_ATTR in param;
 };
@@ -32,6 +38,10 @@ export const isEventHandler = (param: unknown): param is EventHandler => {
 
 export const isActionAttr = (param: unknown): param is ActionAttr<Node, object> => {
     return typeof param === 'object' && param !== null && ACTION_ATTR in param;
+};
+
+export const isProp = (param: unknown): param is Prop => {
+    return typeof param === 'object' && param !== null && PROP in param;
 };
 
 /**
@@ -64,7 +74,7 @@ export type WhenFn = {
  * Si le paramètre est un booléen, l'attribut sera ajouté si la valeur est `true`.
  * @param param store ou boolean
  * @param value valeur du store pour que la condition soit vraie (par défaut `true`)
- * @returns un store contenant un objet ConditionalAttr qui peut être utilisé en tant que valeur d'un attribut HTML
+ * @returns un objet ConditionalAttr qui peut être utilisé en tant que valeur d'un attribut HTML
  */
 export const when: WhenFn = (param: Readable<unknown> | boolean, value: unknown = true) => {
     return (
@@ -96,13 +106,13 @@ export const call = (handler?: (event: Event) => void): EventHandler => {
 
 /**
  * Crée un objet qui, utilisé en tant que valeur d'un attribut, indique que l'attribut est une action.
- * 
+ *
  * Une action est une fonction d'initialisation qui est appelée lorsque le noeud est créé,
  * et qui retourne une fonction de nettoyage qui sera appelée lors de la destruction du noeud.
- * 
- * Lors de l'utilisation d'une action en tant que valeur d'un attribut, le nom de l'attribut est ignoré, 
+ *
+ * Lors de l'utilisation d'une action en tant que valeur d'un attribut, le nom de l'attribut est ignoré,
  * mais 'use' est communément utilisé.
- * 
+ *
  * <tag use=${action((node, params) => {
  *     // Code d'initialisation
  *     return () => {
@@ -123,4 +133,18 @@ export const action = <N extends Node, P extends object>(
         params,
         [ACTION_ATTR]: true,
     };
+};
+
+/**
+ * Créé un objet qui, utilisé en tant que valeur d'un attribut,
+ * indique que l'attribut est une propriété du noeud DOM, i.e. doit être assignée via node[propName] = value et non pas via setAttribute.
+ * @returns un objet Prop qui peut être utilisé en tant que valeur d'un attribut HTML
+ */
+export const prop = <T>(value: T | Readable<T>): Prop<T> | Readable<Prop<T>> => {
+    return isReadable(value)
+        ? derived(value, (v) => ({ value: v, [PROP]: true } as Prop<T>))
+        : {
+              value,
+              [PROP]: true,
+          };
 };
